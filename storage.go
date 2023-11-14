@@ -6,7 +6,7 @@ import (
 )
 
 type Storer interface {
-	Push([]byte) error
+	Push([]byte) (int32, error)
 	Fetch(int32) ([]byte, error)
 }
 
