@@ -3,3 +3,6 @@ run: build
 
 build: 
 	@go build -o bin/message-queue
+
+test: 
+	@go test -v ./...
