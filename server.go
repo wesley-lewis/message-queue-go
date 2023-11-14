@@ -2,10 +2,10 @@ package main
 
 type Config struct {
 	ListenAddr string
+	Store      Storer
 }
 
 type Server struct {
-	Store  Storer
 	Config *Config
 }
 
