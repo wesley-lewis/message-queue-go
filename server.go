@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 )
 
 type Config struct {
@@ -23,6 +22,7 @@ func NewServer(cfg *Config) (*Server, error) {
 		Config: cfg,
 		topics: make(map[string]Storer),
 		quitch: make(chan struct{}),
+		producers: []Producer{NewHTTPProducer(cfg.ListenAddr)},
 	}, nil
 }
 
@@ -40,6 +40,10 @@ func (s *Server) Start() {
 	}
 	<- s.quitch
 	// http.ListenAndServe(s.Config.ListenAddr, s)
+}
+
+func(s *Server) publish() error {
+	return nil
 }
 
 func (s *Server) createTopic(name string) bool {
