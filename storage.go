@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+type StoreProducerFunc func() Storer
+
 type Storer interface {
 	Push([]byte) (int32, error)
 	Fetch(int32) ([]byte, error)
@@ -15,7 +17,7 @@ type MemoryStore struct {
 	data [][]byte
 }
 
-func NewMemoryStore() *MemoryStore {
+func NewMemoryStore() Storer {
 	return &MemoryStore{
 		data: make([][]byte, 0),
 	}
