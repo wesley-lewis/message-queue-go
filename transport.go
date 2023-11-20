@@ -17,12 +17,14 @@ type Producer interface {
 }
 
 type HTTPProducer struct {
-	listenAddr string 
+	listenAddr	string 
+	producech	chan<- Message 
 }
 
-func NewHTTPProducer(listenAddr string) *HTTPProducer {
+func NewHTTPProducer(listenAddr string, producech chan Message)*HTTPProducer {
 	return &HTTPProducer{
 		listenAddr: listenAddr,
+		producech: producech,
 	}
 }
 
@@ -37,6 +39,10 @@ func(p *HTTPProducer) ServeHTTP(w http.ResponseWriter,r *http.Request) {
 		if len(parts) != 2 {
 			fmt.Println("invalid action")
 			return
+		}
+		p.producech <- Message {
+			Data: []byte("we don't know yet"),
+			Topic: parts[1],
 		}
 	}
 	fmt.Println(path)
