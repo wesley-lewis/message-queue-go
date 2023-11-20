@@ -61,22 +61,26 @@ func(s *Server) loop() {
 			return
 		case msg := <- s.producech:
 			fmt.Println("Produced: ", msg)
-			if err := s.publish(msg); err != nil {
+			offset, err := s.publish(msg) 
+			if err != nil {
 				slog.Error("failed to publish", err)
+			}else {
+				slog.Info("published to", "offset", offset)
 			}
 		}
 	}
 }
 
-func(s *Server) publish(msg Message) error {
-	s.createTopicIfNotExist(msg.Topic)
-
-	return nil
+func(s *Server) publish(msg Message) (int32, error) {
+	store := s.getStoreForTopic(msg.Topic)
+	return store.Push(msg.Data)
 }
 
-func (s *Server) createTopicIfNotExist(topic string)  {
+func (s *Server) getStoreForTopic(topic string) Storer {
 	if _, ok := s.topics[topic]; !ok {
 		s.topics[topic] = s.Config.StoreProducerFunc()
 		slog.Info("created new topic", "topic", topic)
 	}
+	
+	return s.topics[topic]
 }
