@@ -5,7 +5,8 @@ package main
 
 func main() {
 	cfg := &Config{
-		ListenAddr: ":3000",
+		HTTPListenAddr: ":3000",
+		WSListenAddr: ":4000",
 		StoreProducerFunc: func() Storer {
 			return NewMemoryStore()
 		},
