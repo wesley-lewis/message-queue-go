@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"fmt"
 
 	"github.com/gorilla/websocket"
 )
@@ -12,5 +11,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(conn)
+
+	msg := WSMessage {
+		Action: "subscribe",
+		Topics: []string{"foobarbar"},
+	}
+	
+	conn.WriteJSON(msg)
+}
+
+type WSMessage struct {
+	Action	string		`json:"action"`
+	Topics	[]string	`json:"topics"`
 }
