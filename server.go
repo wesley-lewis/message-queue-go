@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 
 	"golang.org/x/exp/slog"
 )
@@ -12,13 +13,18 @@ type Message struct {
 }
 
 type Config struct {
-	ListenAddr        string
-	StoreProducerFunc StoreProducerFunc
+	HTTPListenAddr			string
+	WSListenAddr			string 
+	StoreProducerFunc		StoreProducerFunc
 }
 
 type Server struct {
-	Config *Config
-	topics map[string]Storer
+	Config		*Config
+
+	mu			sync.RWMutex
+	peers		map[Peer] bool
+
+	topics		map[string]Storer
 	consumers []Consumer
 	producers []Producer
 	producech chan Message
@@ -27,21 +33,27 @@ type Server struct {
 
 func NewServer(cfg *Config) (*Server, error) {
 	producech := make(chan Message)
-	return &Server{
+	s :=  &Server{
 		Config: cfg,
 		topics: make(map[string]Storer),
 		quitch: make(chan struct{}),
+		peers: make(map[Peer]bool),
 		producech: producech,
-		producers: []Producer{NewHTTPProducer(cfg.ListenAddr, producech)},
-	}, nil
+		producers: []Producer{NewHTTPProducer(cfg.HTTPListenAddr, producech)},
+	}
+
+	s.consumers = []Consumer{NewWSConsumer(s.Config.WSListenAddr, s)}
+	return s, nil
 }
 
 func (s *Server) Start() {
-	// for _, consumer := range s.consumers {
-	// 	if err := consumer.Start(); err != nil {
-	// 		fmt.Println(err)
-	// 	}
-	// }
+	for _, consumer := range s.consumers {
+		go func(c Consumer) {
+			if err := c.Start(); err != nil {
+				fmt.Println(err)
+			}
+		}(consumer)
+	}
 
 	for _, producer := range s.producers {
 		go func(p Producer) {
@@ -83,4 +95,11 @@ func (s *Server) getStoreForTopic(topic string) Storer {
 	}
 	
 	return s.topics[topic]
+}
+
+func (s *Server) AddConn(p Peer) {
+	s.mu.Lock()
+	defer s.mu.Unlock() 
+	slog.Info("added new peers", "peer", p)
+	s.peers[p] = true
 }
