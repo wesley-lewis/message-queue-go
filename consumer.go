@@ -41,9 +41,9 @@ func(ws *WSConsumer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	p := NewWSPPeer(conn)
 	ws.server.AddConn(p)
-	fmt.Println(conn)
 }
 
-func foo() {
-	websocket.DefaultDialer.Dial("ws:/foo", nil)
+type WSMessage struct {
+	Action	string		`json:"action"`
+	Topics	[]string	`json:"topics"`
 }
